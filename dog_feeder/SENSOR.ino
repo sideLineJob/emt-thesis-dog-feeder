@@ -13,7 +13,7 @@ void SENSOR::SENSOR_setup(int trig1, int echo1, int trig2, int echo2) {
   trigPin2 = trig2;
 }
 
-void SENSOR::getSensorValueMain() {
+void SENSOR::updateSensorValueMain() {
   digitalWrite(trigPin1, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin1, HIGH);
@@ -22,14 +22,14 @@ void SENSOR::getSensorValueMain() {
   duration1 = pulseIn(echoPin1, HIGH);
   distance1 = duration1 * 0.034 / 2;
 
-  #ifdef DEBUG
+  #ifdef DEBUG_SENSOR
     Serial.print("Distance 1: ");
     Serial.print(distance1);
     Serial.println(" cm");
   #endif
 }
 
-void SENSOR::getSensorValueBowl1() {
+void SENSOR::updateSensorValueBowl1() {
   digitalWrite(trigPin2, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin2, HIGH);
@@ -38,7 +38,7 @@ void SENSOR::getSensorValueBowl1() {
   duration2 = pulseIn(echoPin2, HIGH);
   distance2 = duration2 * 0.034 / 2;
 
-  #ifdef DEBUG
+  #ifdef DEBUG_SENSOR
     Serial.print("Distance 2: ");
     Serial.print(distance2);
     Serial.println(" cm");

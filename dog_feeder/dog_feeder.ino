@@ -1,6 +1,7 @@
 #include "Adafruit_FONA.h"
 #include <SoftwareSerial.h>
 #include "SENSOR.h"
+#include "TIME.h"
 
 /**
  * GSM Config
@@ -28,6 +29,10 @@ uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout = 0);
 
 SENSOR sensorCont;
 
+/**
+ * TIME config
+ */
+TIME timeCont;
 
 
 void setup() {
@@ -36,6 +41,7 @@ void setup() {
   
   GSM_setup();
   sensorCont.SENSOR_setup(TRIG_PIN1, ECHO_PIN1, TRIG_PIN2, ECHO_PIN2);
+  timeCont.TIME_setup();
 }
 
   
@@ -45,8 +51,14 @@ char smsBuffer[250];
 
 void loop() {
    smsListener();
-   sensorCont.getSensorValueMain();
-   sensorCont.getSensorValueBowl1();
+   sensorCont.updateSensorValueMain();
+   sensorCont.updateSensorValueBowl1();
+   timeCont.updateTime();
+
+
+
+
+   
 }
 
 

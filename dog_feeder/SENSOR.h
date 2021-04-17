@@ -4,14 +4,14 @@
 #include <Arduino.h>
 
 // uncomment to see debug values
-#define DEBUG
+//#define DEBUG_SENSOR
 
 class SENSOR
 {
   public:
     void SENSOR_setup(int trig1, int echo1, int trig2, int echo2);
-    void getSensorValueMain();
-    void getSensorValueBowl1();
+    void updateSensorValueMain();
+    void updateSensorValueBowl1();
   private:
     int echoPin1;
     int trigPin1;
