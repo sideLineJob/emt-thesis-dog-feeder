@@ -22,3 +22,20 @@ void TIME::updateTime() {
     delay(500);
   #endif
 }
+
+void TIME::isMorning() {
+  Serial.print("Year: ");
+  Serial.println(yearValue);
+  Serial.print("Month: ");
+  Serial.println(monthValue);
+  Serial.print("Date: ");
+  Serial.println(dateValue);
+  Serial.print("Hour: ");
+  Serial.println(hourValue);
+  Serial.print("Minute: ");
+  Serial.println(minuteValue);
+  Serial.print("Second: ");
+  Serial.println(secondValue);
+  Serial.println("------------");
+  delay(500);
+}

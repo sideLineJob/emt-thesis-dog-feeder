@@ -44,3 +44,24 @@ void SENSOR::updateSensorValueBowl1() {
     Serial.println(" cm");
   #endif
 }
+
+int SENSOR::getTank1PercentLeft() {
+  int tankHeight = feeder1SensorToBottom - feeder1SensorToTop;
+
+  int tankLeft = feeder1SensorToBottom - distance1;
+
+  int leftInPercent = (100 * tankLeft) / tankHeight;
+  
+//  Serial.println(leftInPercent);
+}
+
+
+int SENSOR::getMainTankPercentLeft() {
+  int tankHeight = mainSensorToBottom - mainSensorToTop;
+
+  int tankLeft = mainSensorToBottom - distance2;
+
+  int leftInPercent = (100 * tankLeft) / tankHeight;
+  
+//  Serial.println(leftInPercent);
+}

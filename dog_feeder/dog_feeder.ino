@@ -2,6 +2,8 @@
 #include <SoftwareSerial.h>
 #include "SENSOR.h"
 #include "TIME.h"
+#include "RELAY.h"
+#include "FEEDER_CMD.h"
 
 /**
  * GSM Config
@@ -34,6 +36,22 @@ SENSOR sensorCont;
  */
 TIME timeCont;
 
+/**
+ * RELAY config
+ */
+RELAY switchCont;
+
+/**
+ * CMDs
+ */
+FEEDER_CMD cmdConst;
+String cmd = "";
+boolean cmdAvail = false;
+
+#define IN1 42
+#define IN2 43
+#define IN3 44
+#define IN4 45
 
 void setup() {
   while (!Serial);
@@ -42,25 +60,74 @@ void setup() {
   GSM_setup();
   sensorCont.SENSOR_setup(TRIG_PIN1, ECHO_PIN1, TRIG_PIN2, ECHO_PIN2);
   timeCont.TIME_setup();
+  switchCont.RELAY_setup(IN1, IN2, IN3, IN4);  
+
+  /**
+   * Initially hide feeder
+   */
+  switchCont.feederHide();
 }
 
   
 char fonaNotificationBuffer[64];
 char smsBuffer[250];
+char callerIDbuffer[32] = "+639068936643";  //we'll store the SMS sender number in here
 
 
 void loop() {
-   smsListener();
-   sensorCont.updateSensorValueMain();
-   sensorCont.updateSensorValueBowl1();
-   timeCont.updateTime();
+  smsListener();
+  sensorCont.updateSensorValueMain();
+  sensorCont.updateSensorValueBowl1();
+  timeCont.updateTime();
+  cmdListener();
 
+  sensorCont.getTank1PercentLeft();
+  sensorCont.getMainTankPercentLeft();
 
-
-
-   
+  timeCont.isMorning();
+  
+  if (Serial.available() > 0) {
+    String cmdTemp = Serial.readString();
+    cmd = cmdTemp;
+    cmdAvail = true;
+  }
 }
 
+/**
+ * CMD Listener & Controller
+ */
+void cmdListener() {
+  if (cmdAvail == true) {
+    cmdController();
+
+    cmd = "";
+    cmdAvail = false;
+  }
+}
+
+void cmdController() {
+  if (cmd.indexOf(cmdConst.SHOW_FEEDER_1) >= 0) {
+      Serial.println("FEEDER SHOWED");
+      switchCont.feederShow();
+
+      if (!fona.sendSMS(callerIDbuffer, "Feeder showed successfully!")) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("Sent!"));
+      }
+      
+  } else if (cmd.indexOf(cmdConst.HIDE_FEEDER_1) >= 0) {
+      Serial.println("FEEDER HIDE");
+      switchCont.feederHide();
+
+      if (!fona.sendSMS(callerIDbuffer, "Feeder hide successfully!")) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("Sent!"));
+      }
+      
+  }
+}
 
 /**
  * GSM Setup
@@ -123,8 +190,6 @@ void smsListener() {
     if (1 == sscanf(fonaNotificationBuffer, "+CMTI: " FONA_PREF_SMS_STORAGE ",%d", &slot)) {
       Serial.print("slot: "); Serial.println(slot);
       
-      char callerIDbuffer[32];  //we'll store the SMS sender number in here
-      
       // Retrieve SMS sender address/phone number.
       if (! fona.getSMSSender(slot, callerIDbuffer, 31)) {
         Serial.println("Didn't find SMS message in slot!");
@@ -134,16 +199,11 @@ void smsListener() {
         // Retrieve SMS value.
         uint16_t smslen;
         if (fona.readSMS(slot, smsBuffer, 250, &smslen)) { // pass in buffer and max len!
+          Serial.print("Serial buffer: ");
           Serial.println(smsBuffer);
+          cmd = smsBuffer;
+          cmdAvail = true;
         }
-
-      //Send back an automatic response
-      Serial.println("Sending reponse...");
-      if (!fona.sendSMS(callerIDbuffer, "Hey, I got your text!")) {
-        Serial.println(F("Failed"));
-      } else {
-        Serial.println(F("Sent!"));
-      }
 
       deleteAllSms();
     }

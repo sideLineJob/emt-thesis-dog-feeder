@@ -8,12 +8,13 @@
 DS3231 clock;
 
 // uncomment to see debug values
-#define DEBUG_TIME
+//#define DEBUG_TIME
 
 class TIME {
   public:
     void TIME_setup();
     void updateTime();
+    void isMorning();
   private:
     bool century = false;
     bool h12Flag;
