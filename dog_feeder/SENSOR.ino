@@ -51,8 +51,20 @@ int SENSOR::getTank1PercentLeft() {
   int tankLeft = feeder1SensorToBottom - distance1;
 
   int leftInPercent = (100 * tankLeft) / tankHeight;
-  
-//  Serial.println(leftInPercent);
+
+//  Serial.print("Tank1 (x% left): ");
+//  Serial.print(leftInPercent < 0 ? (leftInPercent = leftInPercent * -1) : leftInPercent);
+//  Serial.println("%");
+//  Serial.print("Tank Height (T2): ");
+//  Serial.println(tankHeight);
+//  Serial.print("Tank Left (x): ");
+//  Serial.println(tankLeft);
+//  Serial.print("Distance(y): ");
+//  Serial.println(distance1);
+//  Serial.println("\n\n---\n\n");
+//  delay(100);
+
+  return leftInPercent;
 }
 
 
@@ -62,6 +74,21 @@ int SENSOR::getMainTankPercentLeft() {
   int tankLeft = mainSensorToBottom - distance2;
 
   int leftInPercent = (100 * tankLeft) / tankHeight;
+
+  Serial.print("MainTank: ");
+  Serial.println(leftInPercent);
+
+  Serial.print("Tank1 (x% left): ");
+  Serial.print(leftInPercent < 0 ? (leftInPercent = leftInPercent * -1) : leftInPercent);
+  Serial.println("%");
+  Serial.print("Tank Height (T2): ");
+  Serial.println(tankHeight);
+  Serial.print("Tank Left (x): ");
+  Serial.println(tankLeft);
+  Serial.print("Distance(y): ");
+  Serial.println(distance2);
+  Serial.println("\n\n---\n\n");
+  delay(100);
   
-//  Serial.println(leftInPercent);
+  return leftInPercent;
 }

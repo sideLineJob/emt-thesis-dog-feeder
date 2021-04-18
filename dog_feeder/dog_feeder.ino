@@ -4,6 +4,7 @@
 #include "TIME.h"
 #include "RELAY.h"
 #include "FEEDER_CMD.h"
+#include <Servo.h>
 
 /**
  * GSM Config
@@ -53,9 +54,19 @@ boolean cmdAvail = false;
 #define IN3 44
 #define IN4 45
 
+boolean sendUpdatedTank = false;
+boolean feederShowedState = false;
+
+/**
+ * Servo Controller
+ */
+Servo containerServo;
+
 void setup() {
   while (!Serial);
   Serial.begin(115200);
+  
+  containerServo.attach(8);
   
   GSM_setup();
   sensorCont.SENSOR_setup(TRIG_PIN1, ECHO_PIN1, TRIG_PIN2, ECHO_PIN2);
@@ -81,10 +92,38 @@ void loop() {
   timeCont.updateTime();
   cmdListener();
 
-  sensorCont.getTank1PercentLeft();
+//  sensorCont.getTank1PercentLeft();
   sensorCont.getMainTankPercentLeft();
 
-  timeCont.isMorning();
+  if (sendUpdatedTank) {
+    int tank1Left = sensorCont.getTank1PercentLeft();
+    int mainTankLeft = sensorCont.getMainTankPercentLeft();
+
+    if (tank1Left < 0) {
+      tank1Left = tank1Left * -1;
+    }
+
+    if (mainTankLeft < 0) {
+      mainTankLeft = mainTankLeft * -1;
+    }
+
+    sendUpdatedTank = false;
+    Serial.println("Sending updated tank...");
+
+    String sms = "Main Tank Left: " + String(mainTankLeft) + "%\nFeeder Container Left: " + String(tank1Left) + "%";
+    int smsLen = sms.length() + 1;
+    char smsCharArr[smsLen];
+    sms.toCharArray(smsCharArr, smsLen);
+    
+    if (!fona.sendSMS(callerIDbuffer, smsCharArr)) {
+        Serial.println(F("Failed"));
+    } else {
+      Serial.println(F("Sent!"));
+    }
+  }
+
+ 
+//  timeCont.isMorning();
   
   if (Serial.available() > 0) {
     String cmdTemp = Serial.readString();
@@ -106,28 +145,69 @@ void cmdListener() {
 }
 
 void cmdController() {
-  if (cmd.indexOf(cmdConst.SHOW_FEEDER_1) >= 0) {
-      Serial.println("FEEDER SHOWED");
-      switchCont.feederShow();
+  if (cmd.indexOf(cmdConst.SHOW_FEEDER_1) >= 0 && feederShowedState == false) {
 
+      // open main container
+      Serial.println("Main container opened!");
+      openContainer();
+      delay(10000);
+      Serial.println("Main container closed!");
+
+      delay(1000);
+      Serial.println("Extending feeder container...");
+      switchCont.feederShow();
+      delay(5000);
+      Serial.println("Feeder container extended!");
+      delay(1000);
+      Serial.println("Sending sms response...");
+      
       if (!fona.sendSMS(callerIDbuffer, "Feeder showed successfully!")) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("Sent!"));
+      }
+
+      feederShowedState = true;
+
+  } else if (cmd.indexOf(cmdConst.SHOW_FEEDER_1) >= 0 && feederShowedState == true) {
+      if (!fona.sendSMS(callerIDbuffer, "Feeder container already extended!")) {
         Serial.println(F("Failed"));
       } else {
         Serial.println(F("Sent!"));
       }
       
   } else if (cmd.indexOf(cmdConst.HIDE_FEEDER_1) >= 0) {
-      Serial.println("FEEDER HIDE");
+      Serial.println("Retracting feeder container...");
       switchCont.feederHide();
+      delay(5000);
+      Serial.println("Feeder container retracted!");
+      delay(1000);
+      Serial.println("Sending sms response...");
 
       if (!fona.sendSMS(callerIDbuffer, "Feeder hide successfully!")) {
         Serial.println(F("Failed"));
       } else {
         Serial.println(F("Sent!"));
       }
-      
+
+      sendUpdatedTank = true;
+      feederShowedState = false;
   }
 }
+
+/**
+ * Servo Controller
+ */
+void closeContainer() {
+  containerServo.write(90);
+  delay(15);
+}
+
+void openContainer() {
+  containerServo.write(2);
+  delay(15);
+}
+
 
 /**
  * GSM Setup
