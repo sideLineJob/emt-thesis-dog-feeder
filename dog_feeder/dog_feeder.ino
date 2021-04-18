@@ -66,7 +66,7 @@ void setup() {
   while (!Serial);
   Serial.begin(115200);
   
-  containerServo.attach(8);
+  containerServo.attach(A8);
   
   GSM_setup();
   sensorCont.SENSOR_setup(TRIG_PIN1, ECHO_PIN1, TRIG_PIN2, ECHO_PIN2);
@@ -77,6 +77,8 @@ void setup() {
    * Initially hide feeder
    */
   switchCont.feederHide();
+
+  closeContainer();
 }
 
   
@@ -93,7 +95,7 @@ void loop() {
   cmdListener();
 
 //  sensorCont.getTank1PercentLeft();
-  sensorCont.getMainTankPercentLeft();
+//  sensorCont.getMainTankPercentLeft();
 
   if (sendUpdatedTank) {
     int tank1Left = sensorCont.getTank1PercentLeft();
@@ -121,6 +123,16 @@ void loop() {
       Serial.println(F("Sent!"));
     }
   }
+
+
+
+//  openContainer();
+//  delay(3000);
+//  closeContainer();
+//  delay(3000);
+
+
+  
 
  
 //  timeCont.isMorning();
@@ -151,12 +163,13 @@ void cmdController() {
       Serial.println("Main container opened!");
       openContainer();
       delay(10000);
+      closeContainer();
       Serial.println("Main container closed!");
 
       delay(1000);
       Serial.println("Extending feeder container...");
       switchCont.feederShow();
-      delay(5000);
+      delay(15000);
       Serial.println("Feeder container extended!");
       delay(1000);
       Serial.println("Sending sms response...");
@@ -179,7 +192,7 @@ void cmdController() {
   } else if (cmd.indexOf(cmdConst.HIDE_FEEDER_1) >= 0) {
       Serial.println("Retracting feeder container...");
       switchCont.feederHide();
-      delay(5000);
+      delay(15000);
       Serial.println("Feeder container retracted!");
       delay(1000);
       Serial.println("Sending sms response...");
